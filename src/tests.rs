@@ -1,15 +1,15 @@
 use crate::{BinaryWrite, BinaryRead};
-use std::{fs::{File, OpenOptions}, io, collections::binary_heap};
+use std::{fs::{OpenOptions}, io};
 
 
 #[derive(Debug)]
-struct AA {
+struct Test {
     f: usize,
     d: char,
     g: u64
 }
 
-impl AA {
+impl Test {
     fn new() -> Self {
         Self {
             f: 32,
@@ -20,19 +20,14 @@ impl AA {
 }
 
 #[test]
-fn size() {
-    println!("Size: {}", std::mem::size_of::<AA>());
-}
-
-#[test]
-fn test_write() -> io::Result<()> {
+fn write_file() -> io::Result<()> {
     let mut file = OpenOptions::new()
     .create(true)
     .write(true)
     .truncate(true)
     .open("./test_file.bin")?;
 
-    let s = AA::new();
+    let s = Test::new();
 
     file.write(&s)?;
 
@@ -40,13 +35,13 @@ fn test_write() -> io::Result<()> {
 }
 
 #[test]
-fn test_read() -> io::Result<()> {
+fn read_file() -> io::Result<()> {
     let mut file = OpenOptions::new()
     .read(true)
     .open("./test_file.bin")?;
 
-    println!("Size {}", std::mem::size_of::<AA>());
-    let a = file.read::<AA>()?;
+    println!("Size {}", std::mem::size_of::<Test>());
+    let a = file.read::<Test>()?;
     println!("Juan: {}", a.g);
 
     Ok(())
