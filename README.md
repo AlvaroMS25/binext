@@ -128,6 +128,5 @@ fn main() -> io::Result<()> {
 }
 ```
 
-
 [Read]: https://doc.rust-lang.org/std/io/trait.Read.html
 [Write]: https://doc.rust-lang.org/std/io/trait.Write.html
