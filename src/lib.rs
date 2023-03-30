@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests;
 
-
 use std::{alloc::{alloc, Layout}, io::{self, Write, Read}, mem::size_of, slice};
 
 pub trait BinaryRead: Read {
