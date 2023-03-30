@@ -4,30 +4,7 @@ mod tests;
 
 use std::{alloc::{alloc, Layout}, io::{self, Write, Read}, mem::size_of, slice};
 
-pub trait BinaryRead {
-    fn read_binary<T>(&mut self) -> io::Result<T>;
-}
-
-pub trait BinaryWrite {
-    fn write_binary<T>(&mut self, item: &T) -> io::Result<()>;
-}
-
-impl<I: Write> BinaryWrite for I {
-    fn write_binary<T>(&mut self, item: &T) -> io::Result<()> {
-        let ptr = item as *const T as *mut u8;
-
-        // SAFETY: all needed conditions for this not to be UB are satisfied, see
-        // slice::from_raw_parts to see them.
-        let buf = unsafe {
-            slice::from_raw_parts(ptr, size_of::<T>())
-        };
-
-        self.write(buf)?;
-        Ok(())
-    }
-}
-
-impl<I: Read> BinaryRead for I {
+pub trait BinaryRead: Read {
     fn read_binary<T>(&mut self) -> io::Result<T> {
         Ok(unsafe {
             // Allocate the memory using the global allocator, so it can be Boxed later.
@@ -44,3 +21,22 @@ impl<I: Read> BinaryRead for I {
         })
     }
 }
+
+pub trait BinaryWrite: Write {
+    fn write_binary<T>(&mut self, item: &T) -> io::Result<()> {
+        let ptr = item as *const T as *mut u8;
+
+        // SAFETY: all needed conditions for this not to be UB are satisfied, see
+        // slice::from_raw_parts to see them.
+        let buf = unsafe {
+            slice::from_raw_parts(ptr, size_of::<T>())
+        };
+
+        self.write(buf)?;
+        Ok(())
+    }
+}
+
+impl<I: Write> BinaryWrite for I {}
+
+impl<I: Read> BinaryRead for I {}
