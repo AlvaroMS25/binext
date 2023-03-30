@@ -11,7 +11,7 @@ pub trait BinaryRead: Read {
             let ptr = alloc(Layout::new::<T>());
 
             // SAFETY: all needed conditions for this not to be UB are satisfied, see
-            // slice::from_raw_parts to see them.
+            // slice::from_raw_parts_mut to see them.
             let slice = slice::from_raw_parts_mut(ptr, size_of::<T>());
 
             self.read_exact(slice)?;
