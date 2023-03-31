@@ -78,7 +78,7 @@ using namespace std;
 struct SomeData {
     unsigned int a;
     unsigned long long b;
-    char msg[12];
+    char msg[13];
 };
 
 int main() {
@@ -89,7 +89,7 @@ int main() {
     SomeData instance = {
         128,
         256,
-        "Hello World"
+        "Hello World!"
     };
     
     // Write the struct to the file.
@@ -110,7 +110,8 @@ use std::{io, fs::OpenOptions};
 struct SomeData {
     a: u32,
     b: u64,
-    msg: [u8; 12]
+    // u8 is the equivalent in rust of C's char
+    msg: [u8; 13]
 }
 
 fn main() -> io::Result<()> {
@@ -123,6 +124,9 @@ fn main() -> io::Result<()> {
     let data = file.read_binary::<SomeData>()?;
 
     println!("Data: {data:?}");
+
+    let message = String::from_utf8(data.msg.to_vec()).unwrap();
+    println!("{message}");
 
     Ok(())
 }
