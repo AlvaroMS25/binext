@@ -133,7 +133,7 @@ use std::{alloc::{alloc, Layout}, io::{self, Write, Read}, mem::size_of, slice};
 ///
 /// [Read]: Read
 ///
-pub trait BinaryRead {
+pub trait BinaryRead: Read {
     /// Reads from a binary source and converts the bytes into the specified structure, returning
     /// a `Box`ed structure.
     ///
@@ -240,7 +240,7 @@ pub trait BinaryRead {
 ///
 /// [Write]: Write
 ///
-pub trait BinaryWrite {
+pub trait BinaryWrite: Write {
     /// Writes into a binary source the provided struct.
     ///
     /// # Examples
