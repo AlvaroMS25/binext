@@ -160,7 +160,21 @@ pub trait BinaryRead {
     /// }
     /// ```
     ///
-    fn read_binary_boxed<T>(&mut self) -> io::Result<Box<T>>;
+    fn read_binary_boxed<T>(&mut self) -> io::Result<Box<T>> {
+        Ok(unsafe {
+            // Allocate the memory using the global allocator, so it can be Boxed later.
+            let ptr = alloc(Layout::new::<T>());
+
+            // SAFETY: all needed conditions for this not to be UB are satisfied, see
+            // slice::from_raw_parts_mut to see them.
+            let slice = slice::from_raw_parts_mut(ptr, size_of::<T>());
+
+            self.read_exact(slice)?;
+
+            // SAFETY: The pointer has been written to, since it has not been freed, it is still valid.
+            Box::from_raw(ptr as *mut T)
+        })
+    }
 
     /// Reads from a binary source and converts the bytes into the specified structure.
     ///
@@ -257,10 +271,6 @@ pub trait BinaryWrite {
     ///     Ok(())
     /// }
     /// ```
-    fn write_binary<T>(&mut self, item: &T) -> io::Result<()>;
-}
-
-impl<I: Write> BinaryWrite for I {
     fn write_binary<T>(&mut self, item: &T) -> io::Result<()> {
         let ptr = item as *const T as *mut u8;
 
@@ -275,20 +285,6 @@ impl<I: Write> BinaryWrite for I {
     }
 }
 
-impl<I: Read> BinaryRead for I {
-    fn read_binary_boxed<T>(&mut self) -> io::Result<Box<T>> {
-        Ok(unsafe {
-            // Allocate the memory using the global allocator, so it can be Boxed later.
-            let ptr = alloc(Layout::new::<T>());
+impl<I: Write> BinaryWrite for I {}
 
-            // SAFETY: all needed conditions for this not to be UB are satisfied, see
-            // slice::from_raw_parts_mut to see them.
-            let slice = slice::from_raw_parts_mut(ptr, size_of::<T>());
-
-            self.read_exact(slice)?;
-
-            // SAFETY: The pointer has been written to, since it has not been freed, it is still valid.
-            Box::from_raw(ptr as *mut T)
-        })
-    }
-}
+impl<I: Read> BinaryRead for I {}
