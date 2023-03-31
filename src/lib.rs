@@ -106,25 +106,161 @@ mod tests;
 
 use std::{alloc::{alloc, Layout}, io::{self, Write, Read}, mem::size_of, slice};
 
-pub trait BinaryRead: Read {
+/// The BinaryRead trait allows for reading data structures out of binary [Read] sources.
+///
+/// # Examples
+///
+/// ```rust
+/// struct MyStruct {
+///     some: char,
+///     // fields
+/// }
+///
+/// use binext::BinaryRead;
+/// use std::{io, fs};
+///
+/// fn main() -> io::Result<()> {
+///     let mut file = fs::File::open("myfile.bin")?;
+///
+///     // This returns an instance of the file that was in the file.
+///     // Please note that for this method to work properly, the data must be written beforehand
+///     // into the file.
+///     let instance = file.read_binary::<MyStruct>()?;
+///
+///     Ok(())
+/// }
+/// ```
+///
+/// [Read]: Read
+///
+pub trait BinaryRead {
+    /// Reads from a binary source and converts the bytes into the specified structure, returning
+    /// a `Box`ed structure.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// struct MyStruct {
+    ///     some: char,
+    ///     // fields
+    /// }
+    ///
+    /// use binext::BinaryRead;
+    /// use std::{io, fs};
+    ///
+    /// fn main() -> io::Result<()> {
+    ///     let mut file = fs::File::open("myfile.bin")?;
+    ///
+    ///     // This returns an instance of the file that was in the file.
+    ///     // Please note that for this method to work properly, the data must be written beforehand
+    ///     // into the file.
+    ///     let instance = file.read_binary_boxed::<MyStruct>()?;
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    fn read_binary_boxed<T>(&mut self) -> io::Result<Box<T>>;
+
+    /// Reads from a binary source and converts the bytes into the specified structure.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// struct MyStruct {
+    ///     some: char,
+    ///     // fields
+    /// }
+    ///
+    /// use binext::BinaryRead;
+    /// use std::{io, fs};
+    ///
+    /// fn main() -> io::Result<()> {
+    ///     let mut file = fs::File::open("myfile.bin")?;
+    ///
+    ///     // This returns an instance of the file that was in the file.
+    ///     // Please note that for this method to work properly, the data must be written beforehand
+    ///     // into the file.
+    ///     let instance = file.read_binary::<MyStruct>()?;
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
     fn read_binary<T>(&mut self) -> io::Result<T> {
-        Ok(unsafe {
-            // Allocate the memory using the global allocator, so it can be Boxed later.
-            let ptr = alloc(Layout::new::<T>());
-
-            // SAFETY: all needed conditions for this not to be UB are satisfied, see
-            // slice::from_raw_parts_mut to see them.
-            let slice = slice::from_raw_parts_mut(ptr, size_of::<T>());
-
-            self.read_exact(slice)?;
-
-            // SAFETY: The pointer has been written to, since it has not been freed, it is still valid.
-            *Box::from_raw(ptr as *mut T)
-        })
+        self.read_binary_boxed()
+            .map(|boxed| *boxed)
     }
 }
 
-pub trait BinaryWrite: Write {
+/// The BinaryRead trait allows for writing data structures into binary [Write] sources.
+///
+/// # Examples
+///
+/// ```rust
+/// #[derive(Default)]
+/// struct MyStruct {
+///     some: char,
+///     // fields
+/// }
+///
+/// use binext::BinaryWrite;
+/// use std::{io, fs};
+///
+/// fn main() -> io::Result<()> {
+///     use std::sync::Mutex;
+///     let mut file = fs::OpenOptions::new()
+///         .write(true)
+///         .create(true)
+///         .truncate(true)
+///         .open("myfile.bin")?;
+///
+///     let instance = MyStruct::default();
+///
+///     // Write the struct into the file, this way, later when read, it can be recovered.
+///     file.write_binary(&instance)?;
+///
+///     Ok(())
+/// }
+/// ```
+///
+/// [Write]: Write
+///
+pub trait BinaryWrite {
+    /// Writes into a binary source the provided struct.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// #[derive(Default)]
+    /// struct MyStruct {
+    ///     some: char,
+    ///     // fields
+    /// }
+    ///
+    /// use binext::BinaryWrite;
+    /// use std::{io, fs};
+    ///
+    /// fn main() -> io::Result<()> {
+    ///     use std::sync::Mutex;
+    ///     let mut file = fs::OpenOptions::new()
+    ///         .write(true)
+    ///         .create(true)
+    ///         .truncate(true)
+    ///         .open("myfile.bin")?;
+    ///
+    ///     let instance = MyStruct::default();
+    ///
+    ///     // Write the struct into the file, this way, later when read, it can be recovered.
+    ///     file.write_binary(&instance)?;
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    fn write_binary<T>(&mut self, item: &T) -> io::Result<()>;
+}
+
+impl<I: Write> BinaryWrite for I {
     fn write_binary<T>(&mut self, item: &T) -> io::Result<()> {
         let ptr = item as *const T as *mut u8;
 
@@ -139,6 +275,20 @@ pub trait BinaryWrite: Write {
     }
 }
 
-impl<I: Write> BinaryWrite for I {}
+impl<I: Read> BinaryRead for I {
+    fn read_binary_boxed<T>(&mut self) -> io::Result<Box<T>> {
+        Ok(unsafe {
+            // Allocate the memory using the global allocator, so it can be Boxed later.
+            let ptr = alloc(Layout::new::<T>());
 
-impl<I: Read> BinaryRead for I {}
+            // SAFETY: all needed conditions for this not to be UB are satisfied, see
+            // slice::from_raw_parts_mut to see them.
+            let slice = slice::from_raw_parts_mut(ptr, size_of::<T>());
+
+            self.read_exact(slice)?;
+
+            // SAFETY: The pointer has been written to, since it has not been freed, it is still valid.
+            Box::from_raw(ptr as *mut T)
+        })
+    }
+}
