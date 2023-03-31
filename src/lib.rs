@@ -1,10 +1,10 @@
 //! binext is a library that aims to make easier working with binary buffers and structs like you
 //! would in C.
 //!
-//! This library provides safe interfaces to write/read structs from [Read]/[Write] sources.
+//! This library provides safe interfaces to write/read structs from [Read]/[Write] binary sources.
 //!
 //! If used along with #\[repr(C)], this crate allows to read/write binary structures between C/C++
-//! and Rust
+//! and Rust.
 //!
 //! Reading from/to a buffer is as easy as the following:
 //!
@@ -52,7 +52,7 @@
 //!
 //! ```
 //!
-//! However, it is not limited to files, any item implementing [Read]/[Write] implements
+//! However, it is not limited to files, any type implementing [Read]/[Write] implements
 //! [BinaryRead]/[BinaryWrite] respectively.
 //!
 //! For example, we could use a `Vec<u8>` which is [Write], to write in it and then wrap it with a
@@ -106,7 +106,7 @@ mod tests;
 
 use std::{alloc::{alloc, Layout}, io::{self, Write, Read}, mem::size_of, slice};
 
-/// The BinaryRead trait allows for reading data structures out of binary [Read] sources.
+/// The BinaryRead trait allows for reading data structures out of binary sources.
 ///
 /// # Examples
 ///

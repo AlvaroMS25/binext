@@ -2,7 +2,7 @@
 
 binext is a library that aims to make easier working with binary buffers and structs like you would in C.
 
-This library provides safe interfaces to write/read structs from [Read]/[Write] sources.
+This library provides safe interfaces to write/read structs from [Read]/[Write] binary sources.
 
 If used along with `#[repr(C)]`, this crate allows to read/write binary structures between C/C++ and Rust.
 
