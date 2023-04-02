@@ -8,4 +8,9 @@ edition = "2021"
 [dependencies]
 
 [dev-dependencies]
-rand = "0.8.5"
+rand = { version = "0.8.5", features = ["min_const_gen"] }
+criterion = "0.4"
+
+[[bench]]
+name = "benches_entrypoint"
+harness = false
