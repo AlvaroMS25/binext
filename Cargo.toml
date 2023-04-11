@@ -2,6 +2,12 @@
 name = "binext"
 version = "1.0.0"
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/AlvaroMS25/binext"
+readme = "README.md"
+description = "A library to read/write structs from/to buffers"
+keywords = ["binary", "struct", "io"]
+categories = ["encoding"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
