@@ -16,5 +16,6 @@ Cargo.lock
 /Cargo.lock
 
 *.cc
+*.bin
 
 .idea/
