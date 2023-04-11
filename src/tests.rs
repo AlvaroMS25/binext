@@ -39,7 +39,7 @@ fn write_file() -> io::Result<()> {
 fn read_file() -> io::Result<()> {
     let mut file = OpenOptions::new()
     .read(true)
-    .open("./test_file2.bin")?;
+    .open("./test_file.bin")?;
 
     let a = file.read_binary::<Test>()?;
     println!("{a:?}");
